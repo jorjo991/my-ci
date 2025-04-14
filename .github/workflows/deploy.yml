@@ -14,14 +14,19 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Install Heroku CLI
-        run: |
-          curl https://cli-assets.heroku.com/install.sh | sh
+        run: curl https://cli-assets.heroku.com/install.sh | sh
 
-      - name: Deploy to Heroku
+      - name: Authenticate with Heroku
         env:
           HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
         run: |
+          echo "$HEROKU_API_KEY" | sed 's/\r//' > ~/heroku_key
           echo "machine api.heroku.com login $HEROKU_API_KEY password $HEROKU_API_KEY" > ~/.netrc
           echo "machine git.heroku.com login $HEROKU_API_KEY password $HEROKU_API_KEY" >> ~/.netrc
+          chmod 600 ~/.netrc
+          heroku auth:whoami
+
+      - name: Add Heroku remote and deploy
+        run: |
           heroku git:remote -a my-ci
           git push heroku main --force

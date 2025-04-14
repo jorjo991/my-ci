@@ -1,4 +1,4 @@
-name: Deploy to Heroku (Static HTML/JS)
+name: Deploy to Heroku
 
 on:
   push:
@@ -13,9 +13,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Install Heroku CLI
+        run: |
+          curl https://cli-assets.heroku.com/install.sh | sh
+
       - name: Deploy to Heroku
         env:
           HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
         run: |
-          git remote add heroku https://git.heroku.com/my-ci.git
+          echo "machine api.heroku.com login $HEROKU_API_KEY password $HEROKU_API_KEY" > ~/.netrc
+          echo "machine git.heroku.com login $HEROKU_API_KEY password $HEROKU_API_KEY" >> ~/.netrc
+          heroku git:remote -a my-ci
           git push heroku main --force
